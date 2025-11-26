@@ -1,12 +1,13 @@
 services:
   - type: web
     name: pasoxpaso-backend
-    env: java
+    runtime: docker
     region: oregon
     plan: free
-    buildCommand: cd backend && ./mvnw clean package -DskipTests
-    startCommand: java -Dserver.port=$PORT -jar backend/target/*.jar --spring.profiles.active=render
+    dockerfilePath: ./backend/Dockerfile
     envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
       - key: JWT_SECRET
         value: miClaveSecretaSuperSeguraParaJWT2024PasoxPasoEcommerce
       - key: FRONTEND_URL
