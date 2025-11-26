@@ -162,3 +162,6 @@ Proyecto académico - DuocUC
 ## 👥 Autor
 
 Franco Ruiz
+
+---
+Desplegado en Railway
