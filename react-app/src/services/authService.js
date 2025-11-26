@@ -5,7 +5,7 @@ const authService = {
   register: async (userData) => {
     try {
       const response = await api.post('/auth/register', userData);
-      const { token, usuario } = response.data.data;
+      const { token, usuario } = response.data;
       
       // Guardar token y usuario en localStorage
       localStorage.setItem('token', token);
@@ -13,7 +13,7 @@ const authService = {
       
       return { token, usuario };
     } catch (error) {
-      throw error.response?.data?.message || 'Error al registrar usuario';
+      throw error.message || 'Error al registrar usuario';
     }
   },
 
@@ -21,7 +21,7 @@ const authService = {
   login: async (email, password) => {
     try {
       const response = await api.post('/auth/login', { email, password });
-      const { token, usuario } = response.data.data;
+      const { token, usuario } = response.data;
       
       // Guardar token y usuario en localStorage
       localStorage.setItem('token', token);
@@ -29,7 +29,7 @@ const authService = {
       
       return { token, usuario };
     } catch (error) {
-      throw error.response?.data?.message || 'Error al iniciar sesión';
+      throw error.message || 'Error al iniciar sesión';
     }
   },
 

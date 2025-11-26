@@ -74,7 +74,8 @@ export const AuthProvider = ({ children }) => {
       return { success: true, user: usuario };
     } catch (error) {
       console.error('Login error:', error);
-      return { success: false, error: error || 'Error al iniciar sesión' };
+      const errorMessage = typeof error === 'string' ? error : (error?.message || 'Error al iniciar sesión');
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }
@@ -100,7 +101,8 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Registration error:', error);
-      return { success: false, error: error || 'Error al registrar usuario' };
+      const errorMessage = typeof error === 'string' ? error : (error?.message || 'Error al registrar usuario');
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }
@@ -118,7 +120,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     isAuthenticated: !!user,
-    isAdmin: user?.rol === 'admin' || user?.isAdmin || false
+    isAdmin: user?.rol === 'ADMIN' || user?.rol === 'admin' || user?.isAdmin || false
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
