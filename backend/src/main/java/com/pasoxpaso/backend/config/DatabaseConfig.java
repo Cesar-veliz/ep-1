@@ -24,7 +24,10 @@ public class DatabaseConfig {
         URI dbUri = new URI(databaseUrl);
         String username = dbUri.getUserInfo().split(":")[0];
         String password = dbUri.getUserInfo().split(":")[1];
-        String jdbcUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath();
+        
+        // Si no hay puerto explícito, usar el puerto por defecto de PostgreSQL (5432)
+        int port = dbUri.getPort() == -1 ? 5432 : dbUri.getPort();
+        String jdbcUrl = "jdbc:postgresql://" + dbUri.getHost() + ":" + port + dbUri.getPath();
         
         return DataSourceBuilder
                 .create()
