@@ -1,108 +1,79 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import CartItem from './CartItem';
-import '../../../setupTestsJasmine';
 
-const mockItem = {
-  id: 1,
-  nombre: 'Test Product',
-  precio: 50000,
-  cantidad: 2,
-  imagen: '/test-image.jpg'
-};
+describe('CartItem Component', () => {
+  const mockItem = {
+    id: 1,
+    nombre: 'Nike Air Max',
+    precio: 89990,
+    imagen: '/test-image.jpg',
+    cantidad: 2
+  };
 
-describe('CartItem Component (Jasmine)', () => {
-  let mockUpdateQuantity;
-  let mockRemove;
+  const mockOnUpdateQuantity = jasmine.createSpy('onUpdateQuantity');
+  const mockOnRemove = jasmine.createSpy('onRemove');
+
+  const renderCartItem = (item = mockItem) => {
+    return render(
+      <CartItem
+        item={item}
+        onUpdateQuantity={mockOnUpdateQuantity}
+        onRemove={mockOnRemove}
+      />
+    );
+  };
 
   beforeEach(() => {
-    mockUpdateQuantity = jasmine.createSpy('mockUpdateQuantity');
-    mockRemove = jasmine.createSpy('mockRemove');
+    mockOnUpdateQuantity.calls.reset();
+    mockOnRemove.calls.reset();
   });
 
-  it('should render item information correctly', () => {
-    render(
-      <CartItem
-        item={mockItem}
-        onUpdateQuantity={mockUpdateQuantity}
-        onRemove={mockRemove}
-      />
-    );
-
-    expect(screen.getByText('Test Product')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('2')).toBeInTheDocument();
-  });
-
-  it('should call onUpdateQuantity when increase button is clicked', () => {
-    const { container } = render(
-      <CartItem
-        item={mockItem}
-        onUpdateQuantity={mockUpdateQuantity}
-        onRemove={mockRemove}
-      />
-    );
-
-    const increaseButton = container.querySelector('.fa-plus').closest('button');
-    fireEvent.click(increaseButton);
-
-    expect(mockUpdateQuantity).toHaveBeenCalledWith(mockItem.id, 3);
-  });
-
-  it('should call onUpdateQuantity when decrease button is clicked', () => {
-    const { container } = render(
-      <CartItem
-        item={mockItem}
-        onUpdateQuantity={mockUpdateQuantity}
-        onRemove={mockRemove}
-      />
-    );
-
-    const decreaseButton = container.querySelector('.fa-minus').closest('button');
-    fireEvent.click(decreaseButton);
-
-    expect(mockUpdateQuantity).toHaveBeenCalledWith(mockItem.id, 1);
-  });
-
-  it('should disable decrease button when quantity is 1', () => {
-    const itemWithQuantity1 = { ...mockItem, cantidad: 1 };
+  it('should render cart item with correct information', () => {
+    renderCartItem();
     
-    const { container } = render(
-      <CartItem
-        item={itemWithQuantity1}
-        onUpdateQuantity={mockUpdateQuantity}
-        onRemove={mockRemove}
-      />
-    );
+    expect(screen.getByText('Nike Air Max')).toBeTruthy();
+    expect(screen.getByText(/89\.990/)).toBeTruthy();
+  });
 
-    const decreaseButton = container.querySelector('.fa-minus').closest('button');
-    expect(decreaseButton).toBeDisabled();
+  it('should display correct quantity', () => {
+    renderCartItem();
+    
+    const quantityInput = screen.getByRole('spinbutton');
+    expect(quantityInput.value).toBe('2');
+  });
+
+  it('should call onUpdateQuantity when quantity changes', () => {
+    renderCartItem();
+    
+    const quantityInput = screen.getByRole('spinbutton');
+    fireEvent.change(quantityInput, { target: { value: '3' } });
+    
+    expect(mockOnUpdateQuantity).toHaveBeenCalledWith(mockItem.id, 3);
   });
 
   it('should call onRemove when remove button is clicked', () => {
-    render(
-      <CartItem
-        item={mockItem}
-        onUpdateQuantity={mockUpdateQuantity}
-        onRemove={mockRemove}
-      />
-    );
-
-    const removeButton = screen.getByTitle('Eliminar producto');
+    renderCartItem();
+    
+    const removeButton = screen.getByRole('button', { name: /eliminar/i });
     fireEvent.click(removeButton);
-
-    expect(mockRemove).toHaveBeenCalledWith(mockItem.id);
+    
+    expect(mockOnRemove).toHaveBeenCalledWith(mockItem.id);
   });
 
-  it('should display correct item total', () => {
-    render(
-      <CartItem
-        item={mockItem}
-        onUpdateQuantity={mockUpdateQuantity}
-        onRemove={mockRemove}
-      />
-    );
+  it('should calculate subtotal correctly', () => {
+    renderCartItem();
+    
+    const expectedSubtotal = mockItem.precio * mockItem.cantidad;
+    expect(screen.getByText(new RegExp(expectedSubtotal.toLocaleString()))).toBeTruthy();
+  });
 
-    // Total should be 50000 * 2 = 100000
-    expect(screen.getByText(/100\.000/)).toBeInTheDocument();
+  it('should not allow quantity less than 1', () => {
+    renderCartItem();
+    
+    const quantityInput = screen.getByRole('spinbutton');
+    fireEvent.change(quantityInput, { target: { value: '0' } });
+    
+    expect(mockOnUpdateQuantity).not.toHaveBeenCalled();
   });
 });

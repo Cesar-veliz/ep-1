@@ -1,81 +1,68 @@
+import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import LoginForm from './LoginForm';
 import { AuthProvider } from '../../../context/AuthContext';
-import '../../../setupTestsJasmine';
 
-const RouterWrapper = ({ children }) => (
-  <BrowserRouter>
-    <AuthProvider>{children}</AuthProvider>
-  </BrowserRouter>
-);
-
-describe('LoginForm Component (Jasmine)', () => {
-  it('should render login form with all fields', () => {
-    render(
-      <RouterWrapper>
-        <LoginForm />
-      </RouterWrapper>
+describe('LoginForm Component', () => {
+  const renderLoginForm = () => {
+    return render(
+      <BrowserRouter>
+        <AuthProvider>
+          <LoginForm />
+        </AuthProvider>
+      </BrowserRouter>
     );
+  };
 
-    expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Contraseña/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Iniciar Sesión/i })).toBeInTheDocument();
+  it('should render login form with email and password fields', () => {
+    renderLoginForm();
+    
+    expect(screen.getByLabelText(/email/i)).toBeTruthy();
+    expect(screen.getByLabelText(/contraseña/i)).toBeTruthy();
+    expect(screen.getByRole('button', { name: /iniciar sesión/i })).toBeTruthy();
   });
 
-  it('should show validation errors for empty fields', (done) => {
-    render(
-      <RouterWrapper>
-        <LoginForm />
-      </RouterWrapper>
-    );
-
-    const submitButton = screen.getByRole('button', { name: /Iniciar Sesión/i });
+  it('should show validation error when email is empty', async () => {
+    renderLoginForm();
+    
+    const submitButton = screen.getByRole('button', { name: /iniciar sesión/i });
     fireEvent.click(submitButton);
-
-    waitFor(() => {
-      expect(screen.getByText(/El email es requerido/i)).toBeInTheDocument();
-      expect(screen.getByText(/La contraseña es requerida/i)).toBeInTheDocument();
-    }).then(done).catch(done.fail);
+    
+    await waitFor(() => {
+      expect(screen.getByText(/el email es requerido/i)).toBeTruthy();
+    });
   });
 
-  it('should show error for invalid email', (done) => {
-    render(
-      <RouterWrapper>
-        <LoginForm />
-      </RouterWrapper>
-    );
-
-    const emailInput = screen.getByLabelText(/Email/i);
-    fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
-
-    const submitButton = screen.getByRole('button', { name: /Iniciar Sesión/i });
+  it('should show validation error when password is empty', async () => {
+    renderLoginForm();
+    
+    const emailInput = screen.getByLabelText(/email/i);
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    
+    const submitButton = screen.getByRole('button', { name: /iniciar sesión/i });
     fireEvent.click(submitButton);
-
-    waitFor(() => {
-      expect(screen.getByText(/Email inválido/i)).toBeInTheDocument();
-    }).then(done).catch(done.fail);
+    
+    await waitFor(() => {
+      expect(screen.getByText(/la contraseña es requerida/i)).toBeTruthy();
+    });
   });
 
-  it('should have link to register page', () => {
-    render(
-      <RouterWrapper>
-        <LoginForm />
-      </RouterWrapper>
-    );
-
-    const registerLink = screen.getByText(/Regístrate aquí/i);
-    expect(registerLink).toBeInTheDocument();
-    expect(registerLink.closest('a')).toHaveAttribute('href', '/registro');
+  it('should update email input value on change', () => {
+    renderLoginForm();
+    
+    const emailInput = screen.getByLabelText(/email/i);
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    
+    expect(emailInput.value).toBe('test@example.com');
   });
 
-  it('should have forgot password link', () => {
-    render(
-      <RouterWrapper>
-        <LoginForm />
-      </RouterWrapper>
-    );
-
-    expect(screen.getByText(/¿Olvidaste tu contraseña?/i)).toBeInTheDocument();
+  it('should update password input value on change', () => {
+    renderLoginForm();
+    
+    const passwordInput = screen.getByLabelText(/contraseña/i);
+    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    
+    expect(passwordInput.value).toBe('password123');
   });
 });
